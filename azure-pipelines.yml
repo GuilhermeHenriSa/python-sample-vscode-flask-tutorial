@@ -81,7 +81,7 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          ./tmas-cli/tmas scan docker:$(repository):$(tag) --malware --saveSBOM > result.json
+          ./tmas-cli/tmas scan docker:$(repository):$(tag) --malware -V --saveSBOM > result.json
       env:
         TMAS_API_KEY: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJjaWQiOiIyYzZmNmU1ZC1lMmVhLTQ1MmQtOGVkNC0wZWE5MzRlMjQyMzciLCJjcGlkIjoic3ZwIiwicHBpZCI6ImN1cyIsIml0IjoxNzQ2NDcyODg3LCJldCI6MTc3ODAwODg4NywiaWQiOiJmZjUwYTc3ZS05NDRhLTRkMjUtODZhNS04NjE2YWIwYTI4YmMiLCJ0b2tlblVzZSI6ImN1c3RvbWVyIn0.WtTZO77PKnRGSfgSc7-IU3-YqV_f64fl7dWX_Sx29UlRRIbYh-iXiOKo0XwnPSp0LlClOecMw8t8aVrtTDn0of3s5lBw5vESsigbWgpsrHr3ROnxCj877a1uVYXyinIVUuVt0l8zkaqIjDTsJ77qdTfoUGaEI09yoQM4Ys9jGV9EtA1zHIQ8G18t4M0MjVdKoNSvQX7YDNfYpDCXr87GqV-PK-gzt3HwDj-1_HptIPTv3h-ecLk9IXzRTh2liQVVNpiATnAybGTe1Kt1nxNhoGUlFVd6nCB_3liQkaDK81WhE_UwtXM7nbkvc1dqiYohtueX_gV3eL95m800gq6OIyLmXgA3ypa54o67Mhx3zqvKv_thKht8ULU2xKGdlRreXqxjkBe88cmnrr83b6NjhxybO7DjDn7fBpgQVtyLKxHebWy7ZjzeFqzYDZRagsWeycpbCazpSNHGaxyUksLkC9wG2w_W_poBzOM_-rFaVzObJg_Z0vZybfuXDVIoG5cT9J6urqU88A14IdcWrOwqNe5pbdOBv_ff2PpTnzeoprYlJxDXVa1AgWdS-jyMfI_ILbdS5DIkdtZm9rrFzBd0mCOr7gDGLrH6xWY7wx_P4VdacopchvJZcS6zZcd3DPxshsXhA6iJHlgE4TH6YwrHqLIIFoOKH0BbuBClINP-gWM'
 
