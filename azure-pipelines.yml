@@ -1,37 +1,103 @@
-# Python package
-# Create and test a Python package on multiple Python versions.
-# Add steps that analyze code, save the dist with the build record, publish to a PyPI-compatible index, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/python
-
 trigger:
 - main
 
-pool:
-  vmImage: ubuntu-latest
+resources:
+- repo: self
 
-strategy:
-  matrix:
-    Python38:
-      python.version: '3.8'
-    Python39:
-      python.version: '3.9'
-    Python310:
-      python.version: '3.10'
-    Python311:
-      python.version: '3.11'
+variables:
+  repository: 'repositoryURI'
+  tag: '$(Build.BuildId)'
+  imageName: 'imageName'
 
-steps:
-- task: UsePythonVersion@0
-  inputs:
-    versionSpec: '$(python.version)'
-  displayName: 'Use Python $(python.version)'
+stages:
+- stage: Test
+  displayName: Test Python Package
+  jobs:
+  - job: Test
+    displayName: Test on Multiple Python Versions
+    strategy:
+      matrix:
+        Python38:
+          python.version: '3.8'
+        Python39:
+          python.version: '3.9'
+        Python310:
+          python.version: '3.10'
+        Python311:
+          python.version: '3.11'
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '$(python.version)'
+      displayName: 'Use Python $(python.version)'
 
-- script: |
-    python -m pip install --upgrade pip
-    pip install -r requirements.txt
-  displayName: 'Install dependencies'
+    - script: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+      displayName: 'Install dependencies'
 
-- script: |
-    pip install pytest pytest-azurepipelines
-    pytest
-  displayName: 'pytest'
+    - script: |
+        pip install pytest pytest-azurepipelines
+        pytest
+      displayName: 'Run Tests'
+
+- stage: Build
+  displayName: Build and Scan Docker Image
+  dependsOn: Test
+  jobs:
+  - job: Build
+    displayName: Build Docker Image
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: Docker@2
+      inputs:
+        containerRegistry: 'dockerhub'
+        repository: $(repository)
+        command: 'buildAndPush'
+        Dockerfile: '**/Dockerfile'
+
+    - script: |
+        tar --version
+        wget https://cli.artifactscan.cloudone.trendmicro.com/tmas-cli/latest/tmas-cli_Linux_x86_64.tar.gz
+      displayName: Get Latest Version of TMAS
+
+    - task: ExtractFiles@1
+      inputs:
+        archiveFilePatterns: '**/tmas-cli_Linux_x86_64.tar.gz'
+        destinationFolder: 'tmas-cli'
+        cleanDestinationFolder: true
+        overwriteExistingFiles: true
+
+    - task: Bash@3
+      displayName: Save Docker Image
+      inputs:
+        targetType: 'inline'
+        script: |
+          docker save $(repository):$(tag) -o image.tar
+
+    - task: Bash@3
+      displayName: Scan Docker Image with TMAS
+      inputs:
+        targetType: 'inline'
+        script: ./tmas-cli/tmas scan docker-archive:image.tar --malwareScan --saveSBOM > result.json
+      env:
+        TMAS_API_KEY: $(TMAS_API_KEY)
+
+    - script: |
+        git clone https://github.com/XeniaP/CS-ArtifactScanner-Report.git
+        pip install -r ./CS-ArtifactScanner-Report/requirements.txt
+        echo "$(System.DefaultWorkingDirectory)"
+        python ./CS-ArtifactScanner-Report/export_report_tmas.py $(imageName) --resultFile ./result.json
+        ls -la
+        FILE=$(ls *.xlsx | head -n 1)
+        echo "##vso[task.setvariable variable=excelFileName]$FILE"
+      displayName: Create Excel Report with Vulnerabilities
+
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: '$(System.DefaultWorkingDirectory)/$(excelFileName)'
+        publishLocation: 'pipeline'
+      displayName: Publish Excel Report
