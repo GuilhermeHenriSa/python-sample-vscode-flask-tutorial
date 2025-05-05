@@ -5,7 +5,7 @@ resources:
 - repo: self
 
 variables:
-  repository: 'repositoryURI'
+  repository: 'gui0765/python-flask-api'
   tag: '$(Build.BuildId)'
   imageName: 'imageName'
 
