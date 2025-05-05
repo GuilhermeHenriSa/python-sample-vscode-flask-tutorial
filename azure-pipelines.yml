@@ -80,7 +80,7 @@ stages:
       displayName: Scan Docker Image with TMAS
       inputs:
         targetType: 'inline'
-        script: ./tmas-cli/tmas scan docker-archive:image.tar --malwareScan --saveSBOM > result.json
+        script: ./tmas-cli/tmas scan docker-archive:image.tar --malware --saveSBOM > result.json
       env:
         TMAS_API_KEY: $(TMAS_API_KEY)
 
